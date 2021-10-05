@@ -18,12 +18,12 @@ output "public_subnets" {
   value = module.vpc.public_subnets
 }
 
-output "nat_public_IP's" {
+output "nat_public_IPs" {
   description = "Elastic IP's from NAT gateways"
   value = module.vpc.nat_public_ips
 }
 
-output "AZ's" {
+output "AZs" {
   description = "Availability Zones"
   value = module.vpc.azs
 }
