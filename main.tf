@@ -1,5 +1,5 @@
 module "VPC" {
-    source = "./modules/networking"
+    source = "./modules/vpc"
     namespace = var.namespace
     
 }
