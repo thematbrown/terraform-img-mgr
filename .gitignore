@@ -1,0 +1,7 @@
+.terraform/providers/registry.terraform.io/hashicorp/aws/3.42.0/linux_amd64/terraform-provider-aws_v3.42.0_x5
+modules/vpc/.terraform.lock.hcl
+modules/vpc/.terraform/modules/modules.json
+modules/vpc/.terraform/providers/registry.terraform.io/hashicorp/aws/3.42.0/linux_amd64/terraform-provider-aws_v3.42.0_x5
+.terraform.lock.hcl
+img-mgr-cfn.json
+terraform.tfstate
