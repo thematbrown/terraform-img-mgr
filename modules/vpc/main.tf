@@ -1,16 +1,3 @@
-terraform {
-  required_providers {
-    aws = {
-      source = "hashicorp/aws"
-      version = "3.42.0"
-    }
-  }
-}
-
-provider "aws" {
-  region = "us-east-1"
-}
-
 #-----VPC module-----
 module "vpc" {
   source = "terraform-aws-modules/vpc/aws"
@@ -29,9 +16,9 @@ module "vpc" {
 }
 
 #-----LB Security Group-----
-resource "aws_security_group" "allow_http" {
-  name        = "allow_http"
-  description = "Allow HTTP inbound traffic"
+resource "aws_security_group" "allow_http_to_lb" {
+  name        = "lb_http"
+  description = "Allow HTTP traffic to lb"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
@@ -56,9 +43,9 @@ resource "aws_security_group" "allow_http" {
 
 #-----EC2 Security Group-----
 
-resource "aws_security_group" "allow_http" {
-  name        = "allow_http"
-  description = "Allow HTTP inbound traffic"
+resource "aws_security_group" "allow_http_to_instance" {
+  name        = "ec2_http"
+  description = "Allow HTTP from load balancer to ec2 instance"
   vpc_id      = module.vpc.vpc_id
 
   ingress {
