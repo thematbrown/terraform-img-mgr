@@ -1,5 +1,7 @@
-module "VPC" {
-    source = "./modules/vpc"
-    namespace = var.namespace
-    
+#module "VPC" {
+#    source = "./modules/vpc"    
+#}
+
+module "app" {
+  source = "./modules/app"
 }
