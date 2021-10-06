@@ -3,6 +3,10 @@ output "vpc_id" {
   value = module.vpc.vpc_id
 }
 
+output "vpc" {
+  value = module.vpc
+}
+
 output "vpc_cidr" {
   description = "CIDR of vpc"
   value = module.vpc.vpc_cidr_block
