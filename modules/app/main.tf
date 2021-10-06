@@ -47,7 +47,7 @@ module "s3-bucket" {
 }
 
 
-data "aws_ami" "example" {
+data "aws_ami" "img-mgr" {
   most_recent      = true
   owners           = ["amazon"]
 
@@ -57,4 +57,56 @@ data "aws_ami" "example" {
   }
 }
 
+
+
+#-----Autoscaling group-----
+resource "aws_autoscaling_group" "img-mgr-asg" {
+  name                      = "img-mgr"
+  max_size                  = 4
+  min_size                  = 2
+  health_check_grace_period = 300
+  health_check_type         = "ELB"
+  desired_capacity          = 2
+  force_delete              = true
+
+  launch_template {
+    id = aws_launch_template.img-mgr.id
+  }
+  tag {
+    key                 = "name"
+    value               = "img-mgr-asg"
+    propagate_at_launch = false
+  }
+}
 #-----Launch Template-----
+resource "aws_launch_template" "img-mgr" {
+  name = "img-mgr"
+
+  image_id = "ami-087c17d1fe0178315"
+
+  monitoring {
+    enabled = true
+  }
+
+  network_interfaces {
+    associate_public_ip_address = true
+  }
+
+  placement {
+    availability_zone = "us-west-2a"
+  }
+
+  ram_disk_id = "test"
+
+  vpc_security_group_ids = ["sg-12345678"]
+
+  tag_specifications {
+    resource_type = "instance"
+
+    tags = {
+      Name = "test"
+    }
+  }
+
+  user_data = "${file("./modules/app/img-mgr.sh")}"
+}
