@@ -7,3 +7,4 @@ img-mgr-cfn.json
 terraform.tfstate
 terraform.tfstate.backup
 .terraform/modules/modules.json
+.terraform/providers/registry.terraform.io/hashicorp/aws/3.61.0/linux_amd64/terraform-provider-aws_v3.61.0_x5
