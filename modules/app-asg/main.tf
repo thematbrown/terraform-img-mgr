@@ -1,3 +1,8 @@
+#module "VPC" {
+#    source = "./modules/vpc"  
+#    private_ips = ["${module.vpc.private_subnets}"]  
+#}
+
 #resource "aws_iam_role" "dev-img-mgr-permissions-role" {
 #  name = "test_role"
 #
@@ -36,20 +41,8 @@
 #  EOF
 #}
 
-
-module "s3-bucket" {
-  source  = "terraform-aws-modules/s3-bucket/aws"
-  version = "2.9.0"
-  # insert the 5 required variables here
-  acceleration_status = "Suspended"
-  bucket = "img-mgr-t75675464"
-  #policy = 
-}
-
-
 #-----Autoscaling group-----
 resource "aws_autoscaling_group" "img-mgr-asg" {
-  availability_zones        = [ "us-east-1a", "us-east-1b" ]
   name                      = "img-mgr"
   max_size                  = 4
   min_size                  = 2
@@ -57,6 +50,7 @@ resource "aws_autoscaling_group" "img-mgr-asg" {
   health_check_type         = "ELB"
   desired_capacity          = 2
   force_delete              = true
+  vpc_zone_identifier = var.private_subnets
 
   launch_template {
     id = aws_launch_template.img-mgr.id
@@ -72,8 +66,8 @@ resource "aws_launch_template" "img-mgr" {
   name = "img-mgr"
 
   image_id = "ami-087c17d1fe0178315"
-
   instance_type = "t2.micro"
+
 
   monitoring {
     enabled = true
@@ -99,7 +93,7 @@ resource "aws_launch_template" "img-mgr" {
 #-----Load Balancer-----
 resource "aws_elb" "img-mgr-lb" {
   name               = "img-mgr-lb"
-  availability_zones = ["us-east-2a", "us-east-2b"]
+  subnets = var.public_subnets
 
   #access_logs {
   #  bucket        = "foo"
@@ -122,7 +116,6 @@ resource "aws_elb" "img-mgr-lb" {
     interval            = 30
   }
 
-  instances                   = [aws_autoscaling_group.img-mgr-asg.id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
@@ -130,5 +123,58 @@ resource "aws_elb" "img-mgr-lb" {
 
   tags = {
     Name = "img-mgr-lb"
+  }
+}
+
+#-----LB Security Group-----
+resource "aws_security_group" "allow_http_to_lb" {
+  name        = "lb_http"
+  description = "Allow HTTP traffic to lb"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "HTTP from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "allow_http"
+  }
+}
+
+#-----EC2 Security Group-----
+
+resource "aws_security_group" "allow_http_to_instance" {
+  name        = "ec2_http"
+  description = "Allow HTTP from load balancer to ec2 instance"
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "HTTP from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = []
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["10.0.3.0/24", "10.0.4.0/24"]
+  }
+
+  tags = {
+    Name = "allow_http"
   }
 }
