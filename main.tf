@@ -1,3 +1,9 @@
+terraform {
+  backend "s3" {
+      key = "vpc"
+  }
+}
+
 module "VPC" {
     source = "./modules/vpc"    
 }
