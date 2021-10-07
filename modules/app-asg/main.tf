@@ -1,40 +1,40 @@
-resource "aws_iam_role" "dev-img-mgr-permissions-role" {
-  name = "test_role"
-
-  assume_role_policy = <<EOF
-  {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "s3:GetObject",
-                "s3:PutObject",
-                "s3:DeleteObject"
-            ],
-            "Resource": "arn:aws:s3:::img-mgr-t75675464/*"
-        },
-        {
-            "Sid": "VisualEditor1",
-            "Effect": "Allow",
-            "Action": [
-                "s3:ListBucket"
-            ],
-            "Resource": "arn:aws:s3:::img-mgr-t75675464"
-        },
-        {
-            "Sid": "VisualEditor2",
-            "Effect": "Allow",
-            "Action": [
-                "ec2:DescribeTags"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-  EOF
-}
+#resource "aws_iam_role" "dev-img-mgr-permissions-role" {
+#  name = "test_role"
+#
+#  assume_role_policy = <<EOF
+#  {
+#    "Version": "2012-10-17",
+#    "Statement": [
+#        {
+#            "Sid": "VisualEditor0",
+#            "Effect": "Allow",
+#            "Action": [
+#                "s3:GetObject",
+#                "s3:PutObject",
+#                "s3:DeleteObject"
+#            ],
+#            "Resource": "arn:aws:s3:::img-mgr-t75675464/*"
+#        },
+#        {
+#            "Sid": "VisualEditor1",
+#            "Effect": "Allow",
+#            "Action": [
+#                "s3:ListBucket"
+#            ],
+#            "Resource": "arn:aws:s3:::img-mgr-t75675464"
+#        },
+#        {
+#            "Sid": "VisualEditor2",
+#            "Effect": "Allow",
+#            "Action": [
+#                "ec2:DescribeTags"
+#            ],
+#            "Resource": "*"
+#        }
+#    ]
+#}
+#  EOF
+#}
 
 
 module "s3-bucket" {
@@ -45,18 +45,6 @@ module "s3-bucket" {
   bucket = "img-mgr-t75675464"
   #policy = 
 }
-
-
-data "aws_ami" "img-mgr" {
-  most_recent      = true
-  owners           = ["amazon"]
-
-  filter {
-    name   = "name"
-    values = ["amzn2-ami-hvm*"]
-  }
-}
-
 
 
 #-----Autoscaling group-----
@@ -111,7 +99,7 @@ resource "aws_launch_template" "img-mgr" {
 #-----Load Balancer-----
 resource "aws_elb" "img-mgr-lb" {
   name               = "img-mgr-lb"
-  availability_zones = ["us-west-2a", "us-west-2b"]
+  availability_zones = ["us-east-2a", "us-east-2b"]
 
   #access_logs {
   #  bucket        = "foo"
