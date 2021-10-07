@@ -31,8 +31,3 @@ output "AZs" {
   description = "Availability Zones"
   value = module.vpc.azs
 }
-
-output "lb_sg" {
-  description = "LB security group"
-  value = resource.aws_security_group.allow_http_to_lb
-}
