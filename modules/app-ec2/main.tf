@@ -47,8 +47,6 @@ data "aws_ami" "amazon" {
     name   = "virtualization-type"
     values = ["hvm"]
   }
-
-  owners = ["099720109477"] # Canonical
 }
 
 resource "aws_instance" "web" {
