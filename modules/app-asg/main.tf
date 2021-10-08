@@ -51,49 +51,43 @@ resource "aws_autoscaling_group" "img-mgr-asg" {
   desired_capacity          = 2
   force_delete              = true
   vpc_zone_identifier = var.private_subnets
+  load_balancers = [aws_elb.img-mgr-lb.id]
 
   launch_template {
     id = aws_launch_template.img-mgr.id
-  }
-  tag {
-    key                 = "name"
-    value               = "img-mgr-asg"
-    propagate_at_launch = false
+    version = aws_launch_template.img-mgr.latest_version
   }
 }
+
 #-----Launch Template-----
 resource "aws_launch_template" "img-mgr" {
   name = "img-mgr"
 
   image_id = "ami-087c17d1fe0178315"
   instance_type = "t2.micro"
+  vpc_security_group_ids = [aws_security_group.allow_http_to_instance.id]
 
 
   monitoring {
     enabled = true
   }
 
-  network_interfaces {
-    associate_public_ip_address = false
-  }
-
-  #vpc_security_group_ids = ["sg-12345678"]
-
   tag_specifications {
     resource_type = "instance"
 
     tags = {
-      Name = "test"
+      Name = "img-mgr"
     }
   }
 
-  user_data = filebase64("${path.module}/img-mgr.sh")
+  user_data = filebase64("${path.module}/apache.sh")
 }
 
 #-----Load Balancer-----
 resource "aws_elb" "img-mgr-lb" {
   name               = "img-mgr-lb"
   subnets = var.public_subnets
+  security_groups = [ aws_security_group.allow_http_to_lb.id ]
 
   #access_logs {
   #  bucket        = "foo"
@@ -148,7 +142,7 @@ resource "aws_security_group" "allow_http_to_lb" {
   }
 
   tags = {
-    Name = "allow_http"
+    Name = "allow_http_to_lb"
   }
 }
 
@@ -159,22 +153,25 @@ resource "aws_security_group" "allow_http_to_instance" {
   description = "Allow HTTP from load balancer to ec2 instance"
   vpc_id      = var.vpc_id
 
-  ingress {
-    description = "HTTP from VPC"
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = []
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["10.0.3.0/24", "10.0.4.0/24"]
-  }
-
   tags = {
-    Name = "allow_http"
+    Name = "allow_http_to_instance"
   }
+}
+
+resource "aws_security_group_rule" "instance_ingress" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  source_security_group_id = aws_security_group.allow_http_to_lb.id
+  security_group_id = "${aws_security_group.allow_http_to_instance.id}"
+}
+
+resource "aws_security_group_rule" "instance_egress" {
+  type              = "ingress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.allow_http_to_instance.id}"
 }
